@@ -1,0 +1,55 @@
+1.Read the input file line by line.
+2.Create a map or dictionary data structure to store the parent records and their corresponding children.
+3.For each line, parse the record and extract the relevant information, including the record type, parent ID, and record ID.
+4.If the record is a parent (type = "T"), create a new entry in the map with the record ID as the key and an empty vector to store its children.
+5.If the record is a child (type = "P"), find its parent in the map using the parent ID and add the child record to the parent's vector of children.
+6.Once all the records have been processed, iterate over the map entries.
+7.For each entry, recursively process the parent and all its children to gather all related records.
+8.If the number of records for a particular parent (including the parent itself and its children) is equal to or greater than X, write those records to a new file.
+9.Repeat steps 7-8 for each remaining unprocessed parent record.
+10.Continue this process until all parent records and their associated children have been processed.
+
+
+
+function splitFile(filePath, X):
+    recordsMap = createEmptyMap()
+
+    // Step 1: Read the input file line by line
+    foreach line in readLines(filePath):
+        record = parseRecord(line)
+
+        // Step 2-5: Store records and their children in the map
+        if record.type == "T":
+            recordsMap[record.id] = { parent: record, children: [] }
+        else if record.type == "P":
+            parent = recordsMap[record.parentId]
+            parent.children.append(record)
+
+    // Step 6-10: Process each parent and its children recursively
+    foreach entry in recordsMap:
+        processParent(entry, X)
+
+function processParent(entry, X):
+    parent = entry.parent
+    children = entry.children
+
+    // Gather all related records (parent and children)
+    relatedRecords = gatherRelatedRecords(parent, children)
+
+    if size(relatedRecords) >= X:
+        createNewFileAndWriteRecords(relatedRecords)
+    else:
+        foreach child in children:
+            processParent(child, X)
+
+function gatherRelatedRecords(parent, children):
+    relatedRecords = [parent]
+
+    foreach child in children:
+        relatedRecords.append(child)
+        childEntry = recordsMap[child.id]
+
+        // Recursive call to gather children of this child
+        relatedRecords.extend(gatherRelatedRecords(childEntry.parent, childEntry.children))
+
+    return relatedRecords
